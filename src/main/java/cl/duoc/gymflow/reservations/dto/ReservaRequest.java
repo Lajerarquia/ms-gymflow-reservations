@@ -1,0 +1,22 @@
+package cl.duoc.gymflow.reservations.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+/**
+ * Cuerpo de POST /api/reservations. Si quien reserva es un Socio, el BFF ya reemplazó {@code memberId} y
+ * {@code memberName} por los suyos; si es Admin o Instructor, los indica para el socio que corresponda.
+ */
+public record ReservaRequest(
+        @NotNull(message = "La clase es obligatoria")
+        Long classId,
+
+        @NotBlank(message = "El socio es obligatorio")
+        @Size(max = 64, message = "El id del socio no puede superar 64 caracteres")
+        String memberId,
+
+        @NotBlank(message = "El nombre del socio es obligatorio")
+        @Size(max = 150, message = "El nombre del socio no puede superar 150 caracteres")
+        String memberName) {
+}

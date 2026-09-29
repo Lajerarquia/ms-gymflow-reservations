@@ -1,0 +1,40 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-gymflow-reservations
+  # Oracle Autonomous DB con wallet. Nada de secretos aquí: todo llega por variables de entorno.
+  #  - ORACLE_TNS_ALIAS: alias del tnsnames.ora del wallet (ej. gymflowdb_high)
+  #  - ORACLE_WALLET_DIR: carpeta donde se descomprimió el wallet (en Docker, un volumen de solo lectura)
+  datasource:
+    url: jdbc:oracle:thin:@${ORACLE_TNS_ALIAS}?TNS_ADMIN=${ORACLE_WALLET_DIR}
+    username: ${ORACLE_USER}
+    password: ${ORACLE_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    # Las entidades no se exponen fuera de la transacción: los servicios devuelven DTO.
+    open-in-view: false
+    hibernate:
+      # "update" crea las tablas la primera vez. Se puede pasar a "validate" con JPA_DDL_AUTO una vez creado el esquema.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+gymflow:
+  services:
+    # Nombre del contenedor en la red interna de Docker Compose
+    catalog-url: ${CATALOG_URL:http://localhost:8082}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

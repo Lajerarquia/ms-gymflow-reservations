@@ -5,5 +5,3 @@ target/
 .env
 .env.*
 *.log
-wallet/
-Wallet_*/

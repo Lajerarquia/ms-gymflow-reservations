@@ -30,7 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
  * Las peticiones llevan las cabeceras X-User-* igual que las enviaría el BFF (nombre URL-encoded).
  */
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:reservas-pruebas;DB_CLOSE_DELAY=-1",
+        "spring.datasource.url=jdbc:h2:mem:reservas-pruebas;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.datasource.driver-class-name=org.h2.Driver",

@@ -4,14 +4,14 @@ server:
 spring:
   application:
     name: ms-gymflow-reservations
-  # Oracle Autonomous DB con wallet. Nada de secretos aquí: todo llega por variables de entorno.
-  #  - ORACLE_TNS_ALIAS: alias del tnsnames.ora del wallet (ej. gymflowdb_high)
-  #  - ORACLE_WALLET_DIR: carpeta donde se descomprimió el wallet (en Docker, un volumen de solo lectura)
+  # Amazon RDS PostgreSQL. Nada de secretos aquí: todo llega por variables de entorno (.env en la EC2).
+  #  - DB_URL: jdbc:postgresql://<endpoint-rds>:5432/gymflow?sslmode=require
+  #  - DB_USERNAME y DB_PASSWORD: credenciales de la instancia (la contraseña solo en el .env de la EC2)
   datasource:
-    url: jdbc:oracle:thin:@${ORACLE_TNS_ALIAS}?TNS_ADMIN=${ORACLE_WALLET_DIR}
-    username: ${ORACLE_USER}
-    password: ${ORACLE_PASSWORD}
-    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
   jpa:

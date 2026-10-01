@@ -1,8 +1,8 @@
-# Perfil local: H2 en memoria, sin necesidad de Oracle. Necesita catalog corriendo (CATALOG_URL).
+# Perfil local: H2 en memoria (modo PostgreSQL), sin necesidad de RDS. Necesita catalog corriendo (CATALOG_URL).
 # Uso: ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 spring:
   datasource:
-    url: jdbc:h2:mem:reservas;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:reservas;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
     username: sa
     password:
     driver-class-name: org.h2.Driver

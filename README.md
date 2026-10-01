@@ -1,7 +1,7 @@
 # ms-gymflow-reservations
 
 Reservas de GymFlow: crea reservas, controla sus estados y coordina los cupos con ms-gymflow-catalog.
-Persiste en Oracle Autonomous DB. No está expuesto a internet: solo lo llama el BFF, que ya validó el JWT
+Persiste en Amazon RDS PostgreSQL. No está expuesto a internet: solo lo llama el BFF, que ya validó el JWT
 y autorizó por rol, y que envía la identidad en `X-User-Id`, `X-User-Name` (URL-encoded UTF-8) y `X-User-Email`.
 
 ## Estados
@@ -61,7 +61,7 @@ Errores: mismo JSON que el BFF y catalog (`{"timestamp","status","error","messag
 # Local con H2 (necesita catalog corriendo)
 CATALOG_URL=http://localhost:8082 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 
-# Con Oracle: descomprimir el wallet en ./wallet (ignorado por git) y completar .env
+# Con Amazon RDS PostgreSQL: completar DB_URL, DB_USERNAME y DB_PASSWORD en .env (ignorado por git)
 cp .env.example .env
 ```
 

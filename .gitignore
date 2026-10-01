@@ -8,8 +8,6 @@ target/
 .env
 .env.*
 !.env.example
-wallet/
-Wallet_*/
 *.jks
 *.p12
 *.pem

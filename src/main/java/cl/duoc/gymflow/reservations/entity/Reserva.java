@@ -40,6 +40,10 @@ public class Reserva {
     @Column(name = "miembro_nombre", nullable = false, length = 150)
     private String miembroNombre;
 
+    /** Destinatario de las notificaciones (EP2). Opcional: las reservas anteriores a la EP2 no lo tienen. */
+    @Column(name = "miembro_email", length = 254)
+    private String miembroEmail;
+
     @Column(name = "clase_id", nullable = false)
     private Long claseId;
 
@@ -82,9 +86,15 @@ public class Reserva {
 
     public Reserva(String miembroId, String miembroNombre, Long claseId, String claseNombre, Instant claseInicio,
                    Autor autor) {
+        this(miembroId, miembroNombre, null, claseId, claseNombre, claseInicio, autor);
+    }
+
+    public Reserva(String miembroId, String miembroNombre, String miembroEmail, Long claseId, String claseNombre,
+                   Instant claseInicio, Autor autor) {
         Instant ahora = Instant.now();
         this.miembroId = miembroId;
         this.miembroNombre = miembroNombre;
+        this.miembroEmail = miembroEmail;
         this.claseId = claseId;
         this.claseNombre = claseNombre;
         this.claseInicio = claseInicio;
@@ -118,6 +128,10 @@ public class Reserva {
 
     public String getMiembroNombre() {
         return miembroNombre;
+    }
+
+    public String getMiembroEmail() {
+        return miembroEmail;
     }
 
     public Long getClaseId() {

@@ -55,8 +55,9 @@ public class ReservaController {
     @PostMapping
     public ResponseEntity<ReservaResponse> crear(@Valid @RequestBody ReservaRequest datos,
                                                  @RequestHeader(CabecerasUsuario.ID) String usuarioId,
-                                                 @RequestHeader(value = CabecerasUsuario.NOMBRE, required = false) String usuarioNombre) {
-        ReservaResponse creada = reservaService.crear(datos, CabecerasUsuario.autor(usuarioId, usuarioNombre));
+                                                 @RequestHeader(value = CabecerasUsuario.NOMBRE, required = false) String usuarioNombre,
+                                                 @RequestHeader(value = CabecerasUsuario.EMAIL, required = false) String usuarioEmail) {
+        ReservaResponse creada = reservaService.crear(datos, CabecerasUsuario.autor(usuarioId, usuarioNombre), usuarioEmail);
         return ResponseEntity.created(URI.create("/api/reservations/" + creada.id())).body(creada);
     }
 

@@ -44,7 +44,7 @@ class ReservasApiTest extends PruebaApiBase {
         List<String> campos = new ArrayList<>();
         reserva.fieldNames().forEachRemaining(campos::add);
         assertThat(campos).containsExactly("id", "classId", "className", "classStartsAt", "memberId", "memberName",
-                "status", "createdBy", "createdById", "createdAt", "updatedBy", "updatedById", "updatedAt");
+                "memberEmail", "status", "createdBy", "createdById", "createdAt", "updatedBy", "updatedById", "updatedAt");
         assertThat(reserva.get("status").asText()).isEqualTo("RESERVADA");
         assertThat(reserva.get("className").asText()).isEqualTo("Spinning 45");
         assertThat(reserva.get("classStartsAt").asText()).isEqualTo(INICIO_CLASE.toString());

@@ -37,6 +37,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- RabbitMQ (EP2): publica los comandos de notificación al confirmar una reserva -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
 
         <!-- Amazon RDS PostgreSQL: la versión del driver la fija Spring Boot -->
         <dependency>

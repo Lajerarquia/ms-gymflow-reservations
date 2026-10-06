@@ -12,6 +12,7 @@ import cl.duoc.gymflow.reservations.error.ConflictoException;
 import cl.duoc.gymflow.reservations.error.RecursoNoEncontradoException;
 import cl.duoc.gymflow.reservations.error.SolicitudInvalidaException;
 import cl.duoc.gymflow.reservations.error.TransicionInvalidaException;
+import cl.duoc.gymflow.reservations.mensajeria.PublicadorNotificaciones;
 import cl.duoc.gymflow.reservations.repository.ReservaFiltros;
 import cl.duoc.gymflow.reservations.repository.ReservaRepository;
 import java.time.Instant;
@@ -38,6 +39,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * </ol>
  * La llamada HTTP queda fuera de la transacción para no mantener una conexión a la BD abierta mientras
  * se espera al catálogo.
+ * <p>
+ * <b>Notificaciones (EP2).</b> Una vez guardada la confirmación, se publican en RabbitMQ el email al socio y el
+ * ticket de check-in al instructor ({@link PublicadorNotificaciones}). Si RabbitMQ falla, la reserva sigue confirmada.
  */
 @Service
 public class ReservaService {
@@ -46,13 +50,15 @@ public class ReservaService {
 
     private final ReservaRepository reservaRepository;
     private final CatalogClient catalogClient;
+    private final PublicadorNotificaciones notificaciones;
     private final TransactionTemplate transaccion;
     private final TransactionTemplate lectura;
 
     public ReservaService(ReservaRepository reservaRepository, CatalogClient catalogClient,
-                          PlatformTransactionManager transactionManager) {
+                          PublicadorNotificaciones notificaciones, PlatformTransactionManager transactionManager) {
         this.reservaRepository = reservaRepository;
         this.catalogClient = catalogClient;
+        this.notificaciones = notificaciones;
         this.transaccion = new TransactionTemplate(transactionManager);
         this.lectura = new TransactionTemplate(transactionManager);
         this.lectura.setReadOnly(true);
@@ -72,7 +78,11 @@ public class ReservaService {
         return ReservaResponse.desde(buscar(id));
     }
 
-    public ReservaResponse crear(ReservaRequest datos, Autor autor) {
+    /**
+     * @param emailUsuario email de quien hace la petición (cabecera {@code X-User-Email}). Si el socio reserva para
+     *                     sí mismo, es su email; si un Admin o Instructor reserva para otro, se usa el del cuerpo.
+     */
+    public ReservaResponse crear(ReservaRequest datos, Autor autor, String emailUsuario) {
         ClaseCatalogo clase = catalogClient.obtenerClase(datos.classId());
         if (clase.startsAt() == null || !clase.startsAt().isAfter(Instant.now())) {
             throw new ConflictoException("La clase '" + clase.name() + "' ya comenzó; no se puede reservar");
@@ -81,9 +91,14 @@ public class ReservaService {
         if (reservaRepository.existsByMiembroIdAndClaseIdAndEstadoIn(miembroId, clase.id(), EstadoReserva.activos())) {
             throw new ConflictoException("El socio ya tiene una reserva activa en la clase '" + clase.name() + "'");
         }
-        Reserva reserva = new Reserva(miembroId, datos.memberName().trim(), clase.id(), clase.name(),
-                clase.startsAt(), autor);
+        String miembroEmail = miembroId.equals(autor.id()) ? emailUsuario : datos.memberEmail();
+        Reserva reserva = new Reserva(miembroId, datos.memberName().trim(), vacioANull(miembroEmail), clase.id(),
+                clase.name(), clase.startsAt(), autor);
         return ReservaResponse.desde(reservaRepository.save(reserva));
+    }
+
+    private static String vacioANull(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 
     public ReservaResponse cambiarEstado(Long id, EstadoReserva nuevo, Autor autor) {
@@ -95,8 +110,9 @@ public class ReservaService {
 
         Runnable compensacion = moverCupo(leida, previo, nuevo);
 
+        ReservaResponse guardada;
         try {
-            return transaccion.execute(s -> {
+            guardada = transaccion.execute(s -> {
                 Reserva reserva = buscar(id);
                 if (reserva.getVersion() != leida.getVersion()) {
                     throw new ConflictoException("La reserva cambió mientras se procesaba; vuelve a cargarla e intenta de nuevo");
@@ -109,6 +125,12 @@ public class ReservaService {
             compensar(compensacion, id, fallo);
             throw fallo;
         }
+
+        // Fuera de la transacción y solo si se guardó: nunca se notifica una confirmación que no quedó registrada.
+        if (nuevo == EstadoReserva.CONFIRMADA) {
+            notificaciones.reservaConfirmada(guardada);
+        }
+        return guardada;
     }
 
     /**

@@ -12,6 +12,7 @@ final class CabecerasUsuario {
 
     static final String ID = "X-User-Id";
     static final String NOMBRE = "X-User-Name";
+    static final String EMAIL = "X-User-Email";
 
     private CabecerasUsuario() {
     }
